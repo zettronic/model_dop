@@ -1,239 +1,213 @@
 <?if(!defined("B_PROLOG_INCLUDED") || B_PROLOG_INCLUDED!==true)die();?>
 <div id="model_dop_detail">
+	<div id="descr" class="z_tab">
+		<div class="text">
+			<? if( $arResult['PREVIEW_PICTURE']['SRC'] != "" ): ?>
+			<img border="0" src="<?=$arResult['PREVIEW_PICTURE']['SRC']?>" border="0"  class="static_page" align="right" style="margin-left:60px;" />
+			<? endif; ?>
+			<? echo $arResult["DETAIL_TEXT"]; ?>
+		</div>
+	</div>
 
-  <div id="descr" class="z_tab">
+	<div id="photo" class="z_tab">
+	<?
+		//Соотношение сторон экрана
+		$tempn = 43;
+		if( $XY[2] >= 1.5  ){ 
+			$tempn = 1610; 
+		}
 
-  <div class="text">
+		//Разрешение
+		if( $XY[0] >= 1920 ){ 
+			if($temp == 43){
+				$sizen = 1280;
+			}else{
+				$sizen = 1366;
+			} 
+		}else if( $XY[0] >= 1600 ){ 
+			$sizen = 1048; 
+		}else{ 
+			$sizen = 876; 
+		}
 
-  <? if( $arResult['PREVIEW_PICTURE']['SRC'] != "" ): ?>
-  <img border="0" src="<?=$arResult['PREVIEW_PICTURE']['SRC']?>" border="0"  class="static_page" align="right" style="margin-left:60px;" />
-  <? endif; ?>
+		//Массив картинок
+		foreach($arResult["PROPERTIES"]["PHOTO_".$tempn."_".$sizen.""]["VALUE"] as $key => $val){ 
+			$arImgNew[$key] = CFile::GetPath($val); 
+		}
 
-  <? echo $arResult["DETAIL_TEXT"]; ?>
-
-
-  </div>
-  </div>
-
-
-  <div id="photo" class="z_tab">
+		//Массив превью
+		foreach($arResult["PROPERTIES"]["PHOTO_".$tempn."_260"]["VALUE"] as $key => $val){ 
+			$preImgNew[$key] = CFile::GetPath($val);
+		}
 
 
+		global $APPLICATION, $color_first, $stol_first;
+		$XY = $APPLICATION->get_cookie("XY");
+		$XY = split(",", $XY);
+		$imgCount = 0;
+		$color_first = "";
+		$stol_first = "";
 
-<?
+		//Выбираем изображение (массив изображений) в зависимости от разрешения экрана
+		if($XY[2] <= 1.5)
+		{
+	?>
 
-  global $APPLICATION, $color_first, $stol_first;
-  $XY = $APPLICATION->get_cookie("XY");
-  $XY = split(",", $XY);
-  $arImg = Array(); //Массив изображений
-  $temp = "";
-  $imgCount = 0;
-  $color_first = "";
-  $stol_first = "";
 
-  //Выбираем изображение (массив изображений) в зависимости от разрешения экрана
-  $temp = &$arResult['PROPERTIES']['PHOTOS_43'];
-  if( $XY[2] >= 1.5  )
-  { $temp = &$arResult['PROPERTIES']['PHOTOS_1610']; }
-  else
-  {
-    ?>
-
-  <style>
+<style>
   /* Easy Slider */
   #z_slider_container{ height:659; }
   #z_slider li { height:604px; }
   #prevBtn, #nextBtn, #slider1next, #slider1prev, #z_img_num, div#z_full_page { top:574px; }
-  </style>
-
-    <?
-  }
-
-  if( $XY[0] >= 1920 )
-  { $arImg = z_GetImg($temp, 1366); }
-  else if( $XY[0] >= 1600 )
-  { $arImg = z_GetImg($temp, 1048); }
-  else
-  { $arImg = z_GetImg($temp, 876); }
-
-  $imgCount = z_ShowImg($arImg);
-  $preImg = z_GetImg($temp, 260);
-
-?>
-
-<div class="text">
-  <br/>
-  <br>
-  <? if( $arResult['PREVIEW_PICTURE']['SRC'] != "" ): ?>
-  <? endif; ?>
-
-  <? echo $arResult["DETAIL_TEXT"]; ?>
+</style>
 
 
-</div>
-  </div>
+	<?
+		}
+		$imgCount = z_ShowImg($arImgNew);
+    ?>
+		<div class="text">
+			<br/>
+			<? echo $arResult["DETAIL_TEXT"]; ?>
+		</div>
+	</div>
 
+	<div id="cost" class="z_tab" style="margin-top:50px;">
+		<?
+		//Получаем код раздела
+		$res = CIBlockSection::GetByID($arResult["IBLOCK_SECTION_ID"]);
+		if($ar_res = $res->GetNext())
+		{ $s_code = $ar_res['CODE']; }
 
+		?>
 
-  <div id="cost" class="z_tab" style="margin-top:50px;">
+		<div id="cost_title">
+			<table cellpadding="0" cellspacing="0" border="0" class="table_cost">
+				<tr class="selected">
+					<td width="33%" style="text-align:left; padding:5px; border:none;"><h3> <? echo $arResult["NAME"]; ?></h3></td>
+					<td width="34%" style="border:none;"><div class="text" style="font-size: 1.8em;">срок производства - <? echo $arResult["PROPERTIES"]["COMPLETED"]["VALUE"]; ?>*</div></td>
+					<td width="33%" style="text-align:right; padding:5px; border:none;"><h3><? echo CurrencyFormat($arResult["PRICES"]['BASE']['DISCOUNT_VALUE'], "RUS"); ?> </h3></td>
+				</tr>
+			</table>
+		</div>
 
+		<div id="main_cost_image" style="float:left;">
+			<img src="<? echo $arImgNew[0]; ?>" class="cost_eskiz" />
+		</div>
+		<div id="main_cost_eskiz" style="float:right;">
+			<img src="/bitrix/templates/zetta_new_copy/components/bitrix/catalog.element/model_dop_detail/pryam-1.jpg" />
+			<div class="offer_descr">
+				<div class="offer_size">длина 3 метра</div>
+				<div class="offer_cost"><? echo CurrencyFormat($arResult["PRICES"]['BASE']['DISCOUNT_VALUE'], "RUS"); ?></div>
+			</div>
+		</div>
+		<div class="clear"></div>
+		<div style="text-align:center;"><a class="look-price" href="#price">Посмотреть все ценовые варианты</a></div>
 
-<?
+		<div class="text">
+			<? if( $s_code != "" ): ?>
+				<? if( $s_code == "modern" ): ?>
+					<? $APPLICATION->IncludeComponent(
+						"bitrix:main.include",
+						"",
+						Array(
+							"AREA_FILE_SHOW" => "file",
+							"PATH" => "/company/cost_modern.php",
+							"EDIT_TEMPLATE" => ""
+						),
+						false
+					); ?>
+				<? elseif( $s_code == "classic" ): ?>
+					<? $APPLICATION->IncludeComponent(
+						"bitrix:main.include",
+						"",
+						Array(
+							"AREA_FILE_SHOW" => "file",
+							"PATH" => "/company/cost_classic.php",
+							"EDIT_TEMPLATE" => ""
+						),
+						false
+					); ?>
+				<? endif; ?>
+			<? endif; ?>
+		</div>
 
+		<a name="price"></a>
+		<h1 class="cost_h">Сравните две <span style="text-decoration: underline;">прямые кухни</span> одного размера:</h1>
+		<div id="cost">
+			<div id="offers_compare">
+				<div class="main_cost_compare">
+					<canvas id="compare-block-left">Обновите браузер</canvas>
+					<img id="compare-image" src="/bitrix/templates/zetta_new_copy/components/bitrix/catalog.element/model_dop_detail/pryam-1.jpg" /><br>
+					<div class="offer_descr">
+						<div class="offer_size">длина 3 метра</div>
+						<div class="offer_cost"><?=CurrencyFormat($arResult["DISPLAY_PROPERTIES"]["PRICES"]["VALUE"]["0"], "RUS");?></div>
+					</div>
+				</div>
+				<div class="main_cost_compare">
+					<canvas id="compare-block-right">Обновите браузер</canvas>
+					<img  src="/bitrix/templates/zetta_new_copy/components/bitrix/catalog.element/model_dop_detail/pryam-2.jpg" /><br>
+					<div class="offer_descr">
+						<div class="offer_size">длина 3 метра</div>
+						<div class="offer_cost"><?=CurrencyFormat($arResult["DISPLAY_PROPERTIES"]["PRICES"]["VALUE"]["1"], "RUS");?></div>
+					</div>
+				</div>
+			</div>
+			<div class="clear"></div>
+			<div class="text">
+				<table class="list-compare" cellspacing="0">
+					<tr class="list-compare-select">
+						<td>Высота верхних шкафов 720 мм</td>
+						<td>Высота верхних шкафов 960 мм</td>
+					</tr>
+					<tr class="list-compare-select" onmouseover="createSelectObj(16,22,10.4,24,-0.15,47,15,10.4,25,-0.2,18,20,10,31,-0.2,47,14,10,30,-0.2);" onmouseout="createSelectObj(0);">
+						<td>Фасады глухие</td>
+						<td>Фасады с витражами</td>
+					</tr>
+					<tr class="list-compare-select" onmouseover="createSelectObj(20,69,13.6,24.5,-0.20,47.3,63,14,24,-0.2,22,71.5,13,22.4,-0.19,48,65.7,12.3,22.4,-0.2);" onmouseout="createSelectObj(0);">
+						<td>2 ящика тандембокс</td>
+						<td>4 ящика тандембокс</td>
+					</tr>
+				</table>
+			</div>
+			<h1 class="cost_h">Сравните две <span style="text-decoration: underline;">угловые кухни</span> одного размера:</h1>
+			<div id="cost-2">
+				<div id="offers_compare">
+					<div class="main_cost_compare">
+						<canvas id="compare-block-left-2">Обновите браузер</canvas>
+						<img id="compare-image" src="/bitrix/templates/zetta_new_copy/components/bitrix/catalog.element/model_dop_detail/ugol-1.jpg" /><br>
+						<div class="offer_descr">
+							<div class="offer_size">длина 3x1,8 метра</div>
+							<div class="offer_cost"><?=CurrencyFormat($arResult["DISPLAY_PROPERTIES"]["PRICES"]["VALUE"]["2"], "RUS");?></div>
+						</div>
+					</div>
+					<div class="main_cost_compare">
+						<canvas id="compare-block-right-2">Обновите браузер</canvas>
+						<img  src="/bitrix/templates/zetta_new_copy/components/bitrix/catalog.element/model_dop_detail/ugol-2.jpg" /><br>
+						<div class="offer_descr">
+							<div class="offer_size">длина 3x1,8 метра</div>
+							<div class="offer_cost"><?=CurrencyFormat($arResult["DISPLAY_PROPERTIES"]["PRICES"]["VALUE"]["3"], "RUS");?></div>
+						</div>
+					</div>
+				</div>
+				<div class="clear"></div>
 
-
-
-  //Получаем код раздела
-
-  $res = CIBlockSection::GetByID($arResult["IBLOCK_SECTION_ID"]);
-  if($ar_res = $res->GetNext())
-  { $s_code = $ar_res['CODE']; }
-
-?>
-
-  <div id="cost_title">
-  <table cellpadding="0" cellspacing="0" border="0" class="table_cost">
-  <tr class="selected">
-  <td width="33%" style="text-align:left; padding:5px; border:none;"><h3> <? echo $arResult["NAME"]; ?></h3></td>
-    <td width="34%" style="border:none;"><div class="text" style="font-size: 1.8em;">срок производства - <? echo $arResult["PROPERTIES"]["COMPLETED"]["VALUE"]; ?>*</div></td>
-  <td width="33%" style="text-align:right; padding:5px; border:none;"><h3><? echo CurrencyFormat($arResult["PRICES"]['BASE']['DISCOUNT_VALUE'], "RUS"); ?> </h3></td>
-  </tr>
-  </table>
-  </div>
-
-  <div id="main_cost_image" style="float:left;">
-  <img src="<? echo $arImg[0]; ?>" class="cost_eskiz" />
-  </div>
-
-  <div id="main_cost_eskiz" style="float:right;">
-    <img src="/bitrix/templates/zetta_new_copy/components/bitrix/catalog.element/model_dop_detail/pryam-1.jpg" />
-
-    <div class="offer_descr">
-        <div class="offer_size">длина 3 метра</div>
-        <div class="offer_cost"><? echo CurrencyFormat($arResult["PRICES"]['BASE']['DISCOUNT_VALUE'], "RUS"); ?></div>
-    </div>
-
-  </div>
-
-  <div class="clear"></div>
-
-    <div style="text-align:center;"><a class="look-price" href="#price">Посмотреть все ценовые варианты</a></div>
-
-  <div class="text">
-  <? if( $s_code != "" ): ?>
-
-    <? if( $s_code == "modern" ): ?>
-
-      <? $APPLICATION->IncludeComponent(
-      "bitrix:main.include",
-      "",
-      Array(
-        "AREA_FILE_SHOW" => "file",
-        "PATH" => "/company/cost_modern.php",
-        "EDIT_TEMPLATE" => ""
-      ),
-      false
-      ); ?>
-
-    <? elseif( $s_code == "classic" ): ?>
-
-      <? $APPLICATION->IncludeComponent(
-      "bitrix:main.include",
-      "",
-      Array(
-        "AREA_FILE_SHOW" => "file",
-        "PATH" => "/company/cost_classic.php",
-        "EDIT_TEMPLATE" => ""
-      ),
-      false
-      ); ?>
-
-    <? endif; ?>
-
-  <? endif; ?>
-    </div>
-
-
-
-<a name="price"></a>
-	  <h1 class="cost_h">Сравните две <span style="text-decoration: underline;">прямые кухни</span> одного размера:</h1>
-  <div id="cost">
-    <div id="offers_compare">
-      <div class="main_cost_compare">
-      <canvas id="compare-block-left">Обновите браузер</canvas>
-		  <img id="compare-image" src="/bitrix/templates/zetta_new_copy/components/bitrix/catalog.element/model_dop_detail/pryam-1.jpg" /><br>
-        <div class="offer_descr">
-          <div class="offer_size">длина 3 метра</div>
-			<div class="offer_cost"><?=CurrencyFormat($arResult["DISPLAY_PROPERTIES"]["PRICES"]["VALUE"]["0"], "RUS");?></div>
-        </div>
-    </div>
-        <div class="main_cost_compare">
-      <canvas id="compare-block-right">Обновите браузер</canvas>
-      <img  src="/bitrix/templates/zetta_new_copy/components/bitrix/catalog.element/model_dop_detail/pryam-2.jpg" /><br>
-        <div class="offer_descr">
-          <div class="offer_size">длина 3 метра</div>
-          <div class="offer_cost"><?=CurrencyFormat($arResult["DISPLAY_PROPERTIES"]["PRICES"]["VALUE"]["1"], "RUS");?></div>
-        </div>
-    </div>
-  </div>
-
-  <div class="clear"></div>
-
-  <div class="text">
-    <table class="list-compare" cellspacing="0">
-      <tr class="list-compare-select">
-        <td>Высота верхних шкафов 720 мм</td>
-        <td>Высота верхних шкафов 960 мм</td>
-      </tr>
-      <tr class="list-compare-select" onmouseover="createSelectObj(16,22,10.4,24,-0.15,47,15,10.4,25,-0.2,18,20,10,31,-0.2,47,14,10,30,-0.2);" onmouseout="createSelectObj(0);">
-        <td>Фасады глухие</td>
-        <td>Фасады с витражами</td>
-      </tr>
-      <tr class="list-compare-select" onmouseover="createSelectObj(20,69,13.6,24.5,-0.20,47.3,63,14,24,-0.2,22,71.5,13,22.4,-0.19,48,65.7,12.3,22.4,-0.2);" onmouseout="createSelectObj(0);">
-        <td>2 ящика тандембокс</td>
-        <td>4 ящика тандембокс</td>
-      </tr>
-    </table>
-    </div>
-	  <h1 class="cost_h">Сравните две <span style="text-decoration: underline;">угловые кухни</span> одного размера:</h1>
-  <div id="cost-2">
-    <div id="offers_compare">
-      <div class="main_cost_compare">
-      <canvas id="compare-block-left-2">Обновите браузер</canvas>
-      <img id="compare-image" src="/bitrix/templates/zetta_new_copy/components/bitrix/catalog.element/model_dop_detail/ugol-1.jpg" /><br>
-        <div class="offer_descr">
-          <div class="offer_size">длина 3x1,8 метра</div>
-          <div class="offer_cost"><?=CurrencyFormat($arResult["DISPLAY_PROPERTIES"]["PRICES"]["VALUE"]["2"], "RUS");?></div>
-        </div>
-    </div>
-        <div class="main_cost_compare">
-      <canvas id="compare-block-right-2">Обновите браузер</canvas>
-      <img  src="/bitrix/templates/zetta_new_copy/components/bitrix/catalog.element/model_dop_detail/ugol-2.jpg" /><br>
-        <div class="offer_descr">
-          <div class="offer_size">длина 3x1,8 метра</div>
-          <div class="offer_cost"><?=CurrencyFormat($arResult["DISPLAY_PROPERTIES"]["PRICES"]["VALUE"]["3"], "RUS");?></div>
-        </div>
-    </div>
-  </div>
-
-  <div class="clear"></div>
-
-  <div class="text">
-    <table class="list-compare" cellspacing="0">
-      <tr class="list-compare-select-2" onmouseout="createSelectObjNew(0);">
-        <td>Высота верхних шкафов 720 мм</td>
-        <td>Высота верхних шкафов 960 мм</td>
-      </tr>
-      <tr class="list-compare-select-2" onmouseover="createSelectObjNew(10,25,9,24,-0.27,36,15.6,9,24,-0.27,13,23,8.4,30,-0.3,37,14,8,30,-0.26);" onmouseout="createSelectObjNew(0);">
-        <td>Фасады глухие</td>
-        <td>Фасады с витражами</td>
-      </tr>
-      <tr class="list-compare-select-2" onmouseover="createSelectObjNew(15,71,12,24.5,-0.30,74,59,11.7,23.4,0.3,18,73,10.5,23,-0.26,72,62,11.4,22,0.3);" onmouseout="createSelectObjNew(0);">
-        <td>2 ящика тандембокс</td>
-        <td>4 ящика тандембокс</td>
-      </tr>
-    </table>
-    </div>
+				<div class="text">
+					<table class="list-compare" cellspacing="0">
+						<tr class="list-compare-select-2" onmouseout="createSelectObjNew(0);">
+							<td>Высота верхних шкафов 720 мм</td>
+							<td>Высота верхних шкафов 960 мм</td>
+						</tr>
+						<tr class="list-compare-select-2" onmouseover="createSelectObjNew(10,25,9,24,-0.27,36,15.6,9,24,-0.27,13,23,8.4,30,-0.3,37,14,8,30,-0.26);" onmouseout="createSelectObjNew(0);">
+							<td>Фасады глухие</td>
+							<td>Фасады с витражами</td>
+						</tr>
+						<tr class="list-compare-select-2" onmouseover="createSelectObjNew(15,71,12,24.5,-0.30,74,59,11.7,23.4,0.3,18,73,10.5,23,-0.26,72,62,11.4,22,0.3);" onmouseout="createSelectObjNew(0);">
+							<td>2 ящика тандембокс</td>
+							<td>4 ящика тандембокс</td>
+						</tr>
+					</table>
+				</div>
 
 <!-- Скрипт сравнения (перенести в библиотеку!) -->
 <script type="text/javascript">
@@ -460,105 +434,96 @@ $(".list-compare-select-2").eq("0").hover( function(){
 </script>
 <!-- //Скрипт сравнения End -->
 
-
-
 <style>
   #offers{display: none;}
 </style>
 
+				<div class="mini-info-block" id="offers">
+				<h1 class="cost_h">Кухня <? echo $arResult["NAME"]; ?></h1>
+					<div class="mini-info-block-left">
+						<div id="offer_" class="z_offer" title="">
+							<div class="offer_picture">
+								<img src="/bitrix/templates/zetta_new_copy/components/bitrix/catalog.element/model_dop_detail/pryam-1.jpg" class="offer_img">
+							</div>
+							<div class="offer_descr">
+								<div class="offer_size">длина 3 метра</div>
+								<div class="offer_cost"><?=CurrencyFormat($arResult["DISPLAY_PROPERTIES"]["PRICES"]["VALUE"]["0"], "RUS");?></div>
+							</div>
+						</div>
+					<div id="offer_" class="z_offer" title="">
+					<div class="offer_picture">
+						<img src="/bitrix/templates/zetta_new_copy/components/bitrix/catalog.element/model_dop_detail/ugol-1.jpg" class="offer_img">
+					</div>
+					<div class="offer_descr">
+						<div class="offer_size">длина 3 х 1,8 м</div>
+						<div class="offer_cost"><?=CurrencyFormat($arResult["DISPLAY_PROPERTIES"]["PRICES"]["VALUE"]["2"], "RUS");?></div>
+					</div>
+				</div>
+				<div class="mini-block-big-img-bg" style="position:fixed;top:1px;left:1px;width:100%;height:100%;background: rgba(255,255,255, 0.6);z-index:200;display:none;"></div>
+				<div class="mini-block-big-img"><div id="block-cost-close"></div></div>
+			</div>
 
-<div class="mini-info-block" id="offers">
+			<div class="mini-info-block-right">
+			<div class="mini-info-block-right-date">
 
-  <h1 class="cost_h">Кухня <? echo $arResult["NAME"]; ?></h1>
-
-  <div class="mini-info-block-left">
-    <div id="offer_" class="z_offer" title="">
-      <div class="offer_picture">
-        <img src="/bitrix/templates/zetta_new_copy/components/bitrix/catalog.element/model_dop_detail/pryam-1.jpg" class="offer_img">
-      </div>
-      <div class="offer_descr">
-        <div class="offer_size">длина 3 метра</div>
-        <div class="offer_cost"><?=CurrencyFormat($arResult["DISPLAY_PROPERTIES"]["PRICES"]["VALUE"]["0"], "RUS");?></div>
-      </div>
-    </div>
-    <div id="offer_" class="z_offer" title="">
-      <div class="offer_picture">
-        <img src="/bitrix/templates/zetta_new_copy/components/bitrix/catalog.element/model_dop_detail/ugol-1.jpg" class="offer_img">
-      </div>
-      <div class="offer_descr">
-        <div class="offer_size">длина 3 х 1,8 м</div>
-        <div class="offer_cost"><?=CurrencyFormat($arResult["DISPLAY_PROPERTIES"]["PRICES"]["VALUE"]["2"], "RUS");?></div>
-      </div>
-    </div>
-    <div class="mini-block-big-img-bg" style="position:fixed;top:1px;left:1px;width:100%;height:100%;background: rgba(255,255,255, 0.6);z-index:200;display:none;"></div>
-    <div class="mini-block-big-img"><div id="block-cost-close"></div></div>
-  </div>
-
-  <div class="mini-info-block-right">
-
-    <div class="mini-info-block-right-date">
-
-      <?if(!$arImg[1]):?>
-      <img style="height: 120px; float: left;max-width: 190px;" data-src="<? echo $arImg[0]; ?>" src="<? echo $arImg[0]; ?>">
-      <div style="display: inline-block; height: 100%; text-align: center; font-weight: 700; font-size: 1.8em; margin-top: 30px; width: 300px;">
-        срок изготовления кухни
-        <br>
-        <? echo $arResult["PROPERTIES"]["COMPLETED"]["VALUE"]; ?>
-      </div>
-      <?elseif(!$arImg[2]):?>
-      <img style="height: 120px; float: left;max-width: 190px;" data-src="<? echo $arImg[0]; ?>" src="<? echo $arImg[0]; ?>">
-      <img style="height: 120px; float: left;max-width: 190px;margin-left: 40px;" data-src="<? echo $arImg[1]; ?>" src="<? echo $arImg[1]; ?>">
-      <?else:?>
-      <img style="height: 120px; float: left;max-width: 190px;" data-src="<? echo $arImg[1]; ?>" src="<? echo $arImg[1]; ?>">
-      <img style="height: 120px; float: left;max-width: 190px;margin-left: 40px;" data-src="<? echo $arImg[2]; ?>" src="<? echo $arImg[2]; ?>">
-      <?endif;?>
-    </div>
-
-    <div class="mini-block-title">Рекомендуемые ручки</div>
-    <div class="jcarousel-wrapper">
-      <div class="jcarousel">
-        <ul>
+			<?if(!$arImgNew[1]):?>
+				<img style="height: 120px; float: left;max-width: 190px;" data-src="<? echo $arImgNew[0]; ?>" src="<? echo $arImgNew[0]; ?>">
+				<div style="display: inline-block; height: 100%; text-align: center; font-weight: 700; font-size: 1.8em; margin-top: 30px; width: 300px;">
+					срок изготовления кухни
+					<br />
+					<? echo $arResult["PROPERTIES"]["COMPLETED"]["VALUE"]; ?>
+				</div>
+			<?elseif(!$arImgNew[2]):?>
+				<img style="height: 120px; float: left;max-width: 190px;" data-src="<? echo $arImgNew[0]; ?>" src="<? echo $arImgNew[0]; ?>">
+				<img style="height: 120px; float: left;max-width: 190px;margin-left: 40px;" data-src="<? echo $arImgNew[1]; ?>" src="<? echo $arImgNew[1]; ?>">
+			<?else:?>
+				<img style="height: 120px; float: left;max-width: 190px;" data-src="<? echo $arImgNew[1]; ?>" src="<? echo $arImgNew[1]; ?>">
+				<img style="height: 120px; float: left;max-width: 190px;margin-left: 40px;" data-src="<? echo $arImgNew[2]; ?>" src="<? echo $arImgNew[2]; ?>">
+			<?endif;?>
+		    </div>
+			<div class="mini-block-title">Рекомендуемые ручки</div>
+				<div class="jcarousel-wrapper">
+					<div class="jcarousel">
+						<ul>
 <?
-  global $rh_first;
-  $Result = Array();
-  $arFilter = Array(
-    "IBLOCK_ID"=>$arResult["PROPERTIES"]["RH"]["LINK_IBLOCK_ID"],
-    "ID"=>$arResult["PROPERTIES"]["RH"]["VALUE"],
-    "ACTIVE"=>"Y",
-  );
-  $res = CIBlockElement::GetList(Array("CODE"=>"DESC", "NAME"=>"ASC"), $arFilter, false, Array("nPageSize"=>200), Array("NAME", "ID", "IBLOCK_ID", "PREVIEW_PICTURE", "DETAIL_PICTURE", "PROPERTY_RGB", "PROPERTY_HTML"));
-  $i = 0;
-  while($ar_fields = $res->GetNext())
-  {
-    array_push($Result, $ar_fields);
-    if( $rh_first == "" )
-    { $rh_first = "zr_".$ar_fields['ID']; }
-    $s = "";
-    if( $ar_fields["PREVIEW_PICTURE"] != "" )
-    {
-      $src = CFile::GetPath($ar_fields["PREVIEW_PICTURE"]);
-      $s = " background-image: url(".$src.");";
-    }
-    if( $ar_fields["DETAIL_PICTURE"] != "" )
-    { $src = CFile::GetPath($ar_fields["DETAIL_PICTURE"]); }
+	global $rh_first;
+	$Result = Array();
+	$arFilter = Array(
+		"IBLOCK_ID"=>$arResult["PROPERTIES"]["RH"]["LINK_IBLOCK_ID"],
+		"ID"=>$arResult["PROPERTIES"]["RH"]["VALUE"],
+		"ACTIVE"=>"Y",
+	);
+	$res = CIBlockElement::GetList(Array("CODE"=>"DESC", "NAME"=>"ASC"), $arFilter, false, Array("nPageSize"=>200), Array("NAME", "ID", "IBLOCK_ID", "PREVIEW_PICTURE", "DETAIL_PICTURE", "PROPERTY_RGB", "PROPERTY_HTML"));
+ 	$i = 0;
+
+	while($ar_fields = $res->GetNext()){
+		array_push($Result, $ar_fields);
+		if($rh_first == ""){ 
+			$rh_first = "zr_".$ar_fields['ID']; 
+		}
+		$s = "";
+		if($ar_fields["PREVIEW_PICTURE"] != ""){
+			$src = CFile::GetPath($ar_fields["PREVIEW_PICTURE"]);
+			$s = " background-image: url(".$src.");";
+		}
+		if( $ar_fields["DETAIL_PICTURE"] != "" ){
+			$src = CFile::GetPath($ar_fields["DETAIL_PICTURE"]); 
+		}
 ?>
-    <li style="<? echo $s; ?>" title="<? echo $ar_fields['NAME']; ?>" src="<? echo $src; ?>">
-    </li>
+							<li style="<? echo $s; ?>" title="<? echo $ar_fields['NAME']; ?>" src="<? echo $src; ?>">
+							</li>
 <?
-  }
+		}
 ?>
-        </ul>
-      </div>
-      <a href="#" class="jcarousel-control-prev"></a>
-      <a href="#" class="jcarousel-control-next"></a>
-    </div>
-
-
-
-    <div class="mini-block-title">Рекомендуемые столешницы</div>
-    <div class="jcarousel-wrapper">
-      <div class="jcarousel">
-        <ul>
+						</ul>
+					</div>
+					<a href="#" class="jcarousel-control-prev"></a>
+					<a href="#" class="jcarousel-control-next"></a>
+				</div>
+				<div class="mini-block-title">Рекомендуемые столешницы</div>
+				<div class="jcarousel-wrapper">
+					<div class="jcarousel">
+						<ul>
 <?
   global $stol_first;
   $Result = Array();
@@ -582,22 +547,20 @@ $(".list-compare-select-2").eq("0").hover( function(){
     else if( $ar_fields["PREVIEW_PICTURE"] != "" )
     { $color = " background-image: url(".CFile::GetPath($ar_fields["DETAIL_PICTURE"]).");"; }
 ?>
-    <li style="<? echo $color; ?>" title="<? echo $ar_fields['NAME']; ?>" ></li>
+							<li style="<? echo $color; ?>" title="<? echo $ar_fields['NAME']; ?>" ></li>
 <?
   }
 ?>
-        </ul>
-      </div>
-      <a href="#" class="jcarousel-control-prev"></a>
-      <a href="#" class="jcarousel-control-next"></a>
-    </div>
+						</ul>
+					</div>
+					<a href="#" class="jcarousel-control-prev"></a>
+					<a href="#" class="jcarousel-control-next"></a>
+				</div>
 
-
-
-    <div class="mini-block-title">Фасады</div>
-    <div class="jcarousel-wrapper">
-      <div class="jcarousel">
-        <ul>
+				<div class="mini-block-title">Фасады</div>
+				<div class="jcarousel-wrapper">
+					<div class="jcarousel">
+						<ul>
 <?
   global $color_first;
   $Result = Array();
@@ -621,75 +584,56 @@ $(".list-compare-select-2").eq("0").hover( function(){
     else if( $ar_fields["PREVIEW_PICTURE"] != "" )
     { $color = " background-image: url(".CFile::GetPath($ar_fields["DETAIL_PICTURE"]).");"; }
 ?>
-    <li style="<? echo $color; ?>" title="<? echo $ar_fields['NAME']; ?>" ></li>
+							<li style="<? echo $color; ?>" title="<? echo $ar_fields['NAME']; ?>" ></li>
 <?
   }
 ?>
-        </ul>
-      </div>
-      <a href="#" class="jcarousel-control-prev"></a>
-      <a href="#" class="jcarousel-control-next"></a>
-    </div>
-  </div>
-</div>
-
-
-
-
-	<div class="clear"></div>
+						</ul>
+					</div>
+					<a href="#" class="jcarousel-control-prev"></a>
+					<a href="#" class="jcarousel-control-next"></a>
+				</div>
+			</div>
+		</div>
+		<div class="clear"></div>
 		<div id="sub_cost" style="margin-top: 20px;">
-	
-<div id="sub_cost_left">в цену включена итальянская столешница толщиной 38 мм</div>
- 
-<div id="sub_cost_right">бытовая техника и аксессуары в цену не входят.</div>
+			<div id="sub_cost_left">в цену включена итальянская столешница толщиной 38 мм</div>
+ 			<div id="sub_cost_right">бытовая техника и аксессуары в цену не входят.</div>
+		</div>
 	</div>
-</div>
-</div>
-</div>
+	</div>
+	</div>
 
-  <div id="techno" class="z_tab">
-    <div class="text">
-  <? $APPLICATION->IncludeComponent(
-  "bitrix:main.include",
-  "",
-  Array(
-    "AREA_FILE_SHOW" => "file",
-    "PATH" => "/company/technical.php",
-    "EDIT_TEMPLATE" => ""
-  ),
-  false
-  ); ?>
-    </div>
-  </div>
+	<div id="techno" class="z_tab">
+		<div class="text">
+		<? $APPLICATION->IncludeComponent(
+			"bitrix:main.include",
+			"",
+			Array(
+				"AREA_FILE_SHOW" => "file",
+				"PATH" => "/company/technical.php",
+				"EDIT_TEMPLATE" => ""
+			),
+			false
+		); ?>
+		</div>
+	</div>
 
+	<div id="colors" class="z_tab">
+		<? z_ShowColor($arResult["PROPERTIES"]["COLORS"]); ?>
+	</div>
 
-  
-  
-  
-  
+	<div id="stol" class="z_tab">
+		<? z_ShowStol($arResult["PROPERTIES"]["STOL"]); ?>
+	</div>
 
-  <div id="colors" class="z_tab">
-  <? z_ShowColor($arResult["PROPERTIES"]["COLORS"]); ?>
-  </div>
+	<div id="hands" class="z_tab">
+		<? z_ShowRH($arResult["PROPERTIES"]["RH"]); ?>
+	</div>
 
-
-  <div id="stol" class="z_tab">
-  <? z_ShowStol($arResult["PROPERTIES"]["STOL"]); ?>
-  </div>
-
-  <div id="hands" class="z_tab">
-  <? z_ShowRH($arResult["PROPERTIES"]["RH"]); ?>
-  </div>
-  
-  
-
-
-
-
-  <div id="left_content_hide" class="z_tab">
-  <img src="<? echo $preImg[0]; ?>" style="margin-top:15px; margin-bottom:5px;" /><br/>
-  </div>
-
+	<div id="left_content_hide" class="z_tab">
+		<img src="<? echo $preImgNew[0]; ?>" style="margin-top:15px; margin-bottom:5px;" /><br/>
+	</div>
 </div>
 
 
@@ -780,7 +724,6 @@ $(document).ready(function(){
 
   $("#nextBtn a").click( function() {
     var temp = parseInt($("#z_img_current").text())+1;
-    //alert(temp);
     if( temp > img_count )
     { temp = 1 }
     $("#z_img_current").text(temp);
@@ -822,9 +765,6 @@ function z_GetImg($section_id, $size)
      "SECTION_ID"=>$section_id["VALUE"],
      "ACTIVE"=>"Y",
      );
-
-  //echo "<pre>"; print_r($arFilter); echo "</pre>";
-
   $res = CIBlockElement::GetList(Array("CODE"=>"ASC", "NAME"=>"ASC"), $arFilter, false, Array("nPageSize"=>50), Array("NAME", "ID", "IBLOCK_ID", "IBLOCK_SECTION_ID", "PROPERTY_PRED_".$size));
   $i = 0;
   while($ar_fields = $res->GetNext())
@@ -839,8 +779,6 @@ function z_ShowImg($arImg)
 {
   //Функция публикуент код фотогалереи
   $Result = 1;
-
-  //echo "<pre>"; print_r($arImg); echo "</pre>";
 
   if( count($arImg) > 1 )
   {
@@ -1012,8 +950,6 @@ function z_ShowStol($Stol)
     <div id="stol_detail_name"></div>
     </div>
   <?
-
-  //echo "<pre>"; print_r($Result); echo "</pre>";
 
   return $Result;
 }
